@@ -1,0 +1,3 @@
+build/
+*.gguf
+prostt5*.tar.gz

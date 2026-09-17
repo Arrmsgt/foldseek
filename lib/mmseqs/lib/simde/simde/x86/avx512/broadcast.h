@@ -24,6 +24,7 @@
  *   2020      Evan Nemerson <evan@nemerson.com>
  *   2020      Hidayat Khan <huk2209@gmail.com>
  *   2020      Christopher Moore <moore@free.fr>
+ *   2025      Michael R. Crusoe <crusoe@debian.org>
  */
 
 #if !defined(SIMDE_X86_AVX512_BROADCAST_H)
@@ -49,7 +50,7 @@ simde_mm256_broadcast_f32x2 (simde__m128 a) {
     simde__m256_private r_;
     simde__m128_private a_ = simde__m128_to_private(a);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
+    #if defined(SIMDE_VECTOR_SUBSCRIPT) && !defined(SIMDE_NO_SHUFFLE_VECTOR) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
       r_.f32 = __builtin_shufflevector(a_.f32, a_.f32, 0, 1, 0, 1, 0, 1, 0, 1);
     #else
       SIMDE_VECTORIZE
@@ -104,7 +105,7 @@ simde_mm512_broadcast_f32x2 (simde__m128 a) {
     simde__m512_private r_;
     simde__m128_private a_ = simde__m128_to_private(a);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
+    #if defined(SIMDE_VECTOR_SUBSCRIPT) && !defined(SIMDE_NO_SHUFFLE_VECTOR) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
       r_.f32 = __builtin_shufflevector(a_.f32, a_.f32, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1);
     #else
       SIMDE_VECTORIZE
@@ -159,7 +160,7 @@ simde_mm512_broadcast_f32x8 (simde__m256 a) {
     simde__m512_private r_;
     simde__m256_private a_ = simde__m256_to_private(a);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
+    #if defined(SIMDE_VECTOR_SUBSCRIPT) && !defined(SIMDE_NO_SHUFFLE_VECTOR) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
       r_.f32 = __builtin_shufflevector(a_.f32, a_.f32, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7);
     #else
       SIMDE_VECTORIZE
@@ -220,7 +221,7 @@ simde_mm512_broadcast_f64x2 (simde__m128d a) {
     simde__m512d_private r_;
     simde__m128d_private a_ = simde__m128d_to_private(a);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && !defined(SIMDE_BUG_CLANG_BAD_VI64_OPS)
+    #if defined(SIMDE_VECTOR_SUBSCRIPT) && !defined(SIMDE_NO_SHUFFLE_VECTOR) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && !defined(SIMDE_BUG_CLANG_BAD_VI64_OPS)
       r_.f64 = __builtin_shufflevector(a_.f64, a_.f64, 0, 1, 0, 1, 0, 1, 0, 1);
     #else
       SIMDE_VECTORIZE
@@ -278,7 +279,7 @@ simde_mm256_broadcast_f32x4 (simde__m128 a) {
     #if SIMDE_NATURAL_VECTOR_SIZE_LE(128)
         r_.m128_private[0] = a_;
         r_.m128_private[1] = a_;
-    #elif defined(SIMDE_VECTOR_SUBSCRIPT) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
+    #elif defined(SIMDE_VECTOR_SUBSCRIPT) && !defined(SIMDE_NO_SHUFFLE_VECTOR) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector)
       r_.f32 = __builtin_shufflevector(a_.f32, a_.f32, 0, 1, 2, 3, 0, 1, 2, 3);
     #else
       SIMDE_VECTORIZE
@@ -337,7 +338,7 @@ simde_mm256_broadcast_f64x2 (simde__m128d a) {
 
     /* I don't have a bug # for this, but when compiled with clang-10 without optimization on aarch64
      * the __builtin_shufflevector version doesn't work correctly.  clang 9 and 11 aren't a problem */
-    #if defined(SIMDE_VECTOR_SUBSCRIPT) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && \
+    #if defined(SIMDE_VECTOR_SUBSCRIPT) && !defined(SIMDE_NO_SHUFFLE_VECTOR) && HEDLEY_HAS_BUILTIN(__builtin_shufflevector) && \
         (!defined(__clang__) || (SIMDE_DETECT_CLANG_VERSION < 100000 || SIMDE_DETECT_CLANG_VERSION > 100000))
       r_.f64 = __builtin_shufflevector(a_.f64, a_.f64, 0, 1, 0, 1);
     #else
@@ -638,6 +639,132 @@ simde_mm512_maskz_broadcastd_epi32(simde__mmask16 k, simde__m128i a) {
 #if defined(SIMDE_X86_AVX512F_ENABLE_NATIVE_ALIASES)
   #undef _mm512_maskz_broadcastd_epi32
   #define _mm512_maskz_broadcastd_epi32(k, a) simde_mm512_maskz_broadcastd_epi32(k, a)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m128i
+simde_mm_broadcastmb_epi64 (simde__mmask8 k) {
+  #if defined(SIMDE_X86_AVX512CD_NATIVE) && defined(SIMDE_X86_AVX512VL_NATIVE)
+    return _mm_broadcastmb_epi64(k);
+  #else
+    simde__m128i_private r_;
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(r_.i64) / sizeof(r_.i64[0])) ; i++) {
+      r_.i64[i] = k;
+    }
+
+    return simde__m128i_from_private(r_);
+  #endif
+}
+#if defined(SIMDE_X86_AVX512CD_ENABLE_NATIVE_ALIASES) && defined(SIMDE_X86_AVX512VL_ENABLE_NATIVE_ALIASES)
+  #undef _mm_broadcastmb_epi64
+  #define _mm_broadcastmb_epi64(k) simde_mm_broadcastmb_epi64(k)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m256i
+simde_mm256_broadcastmb_epi64 (simde__mmask8 k) {
+  #if defined(SIMDE_X86_AVX512CD_NATIVE) && defined(SIMDE_X86_AVX512VL_NATIVE)
+    return _mm256_broadcastmb_epi64(k);
+  #else
+    simde__m256i_private r_;
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(r_.i64) / sizeof(r_.i64[0])) ; i++) {
+      r_.i64[i] = k;
+    }
+
+    return simde__m256i_from_private(r_);
+  #endif
+}
+#if defined(SIMDE_X86_AVX512CD_ENABLE_NATIVE_ALIASES) && defined(SIMDE_X86_AVX512VL_ENABLE_NATIVE_ALIASES)
+  #undef _mm256_broadcastmb_epi64
+  #define _mm256_broadcastmb_epi64(k) simde_mm256_broadcastmb_epi64(k)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m512i
+simde_mm512_broadcastmb_epi64 (simde__mmask8 k) {
+  #if defined(SIMDE_X86_AVX512CD_NATIVE)
+    return _mm512_broadcastmb_epi64(k);
+  #else
+    simde__m512i_private r_;
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(r_.i64) / sizeof(r_.i64[0])) ; i++) {
+      r_.i64[i] = k;
+    }
+
+    return simde__m512i_from_private(r_);
+  #endif
+}
+#if defined(SIMDE_X86_AVX512CD_ENABLE_NATIVE_ALIASES)
+  #undef _mm512_broadcastmb_epi64
+  #define _mm512_broadcastmb_epi64(k) simde_mm512_broadcastmb_epi64(k)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m128i
+simde_mm_broadcastmw_epi32 (simde__mmask16 k) {
+  #if defined(SIMDE_X86_AVX512CD_NATIVE) && defined(SIMDE_X86_AVX512VL_NATIVE)
+    return _mm_broadcastmw_epi32(k);
+  #else
+    simde__m128i_private r_;
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(r_.i32) / sizeof(r_.i32[0])) ; i++) {
+      r_.i32[i] = k;
+    }
+
+    return simde__m128i_from_private(r_);
+  #endif
+}
+#if defined(SIMDE_X86_AVX512CD_ENABLE_NATIVE_ALIASES) && defined(SIMDE_X86_AVX512VL_ENABLE_NATIVE_ALIASES)
+  #undef _mm_broadcastmw_epi32
+  #define _mm_broadcastmw_epi32(k) simde_mm_broadcastmw_epi32(k)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m256i
+simde_mm256_broadcastmw_epi32 (simde__mmask16 k) {
+  #if defined(SIMDE_X86_AVX512CD_NATIVE) && defined(SIMDE_X86_AVX512VL_NATIVE)
+    return _mm256_broadcastmw_epi32(k);
+  #else
+    simde__m256i_private r_;
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(r_.i32) / sizeof(r_.i32[0])) ; i++) {
+      r_.i32[i] = k;
+    }
+
+    return simde__m256i_from_private(r_);
+  #endif
+}
+#if defined(SIMDE_X86_AVX512CD_ENABLE_NATIVE_ALIASES) && defined(SIMDE_X86_AVX512VL_ENABLE_NATIVE_ALIASES)
+  #undef _mm256_broadcastmw_epi32
+  #define _mm256_broadcastmw_epi32(k) simde_mm256_broadcastmw_epi32(k)
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde__m512i
+simde_mm512_broadcastmw_epi32 (simde__mmask16 k) {
+  #if defined(SIMDE_X86_AVX512CD_NATIVE)
+    return _mm512_broadcastmw_epi32(k);
+  #else
+    simde__m512i_private r_;
+
+    SIMDE_VECTORIZE
+    for (size_t i = 0 ; i < (sizeof(r_.i32) / sizeof(r_.i32[0])) ; i++) {
+      r_.i32[i] = k;
+    }
+
+    return simde__m512i_from_private(r_);
+  #endif
+}
+#if defined(SIMDE_X86_AVX512CD_ENABLE_NATIVE_ALIASES)
+  #undef _mm512_broadcastmw_epi32
+  #define _mm512_broadcastmw_epi32(k) simde_mm512_broadcastmw_epi32(k)
 #endif
 
 SIMDE_FUNCTION_ATTRIBUTES

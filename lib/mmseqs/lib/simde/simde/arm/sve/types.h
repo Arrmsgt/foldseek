@@ -309,7 +309,7 @@ SIMDE_BEGIN_DECLS_
       __m128i m128i[(SIMDE_ARM_SVE_VECTOR_SIZE / 8) / sizeof(__m128i)];
     #endif
 
-    #if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && defined(__ARM_FEATURE_FP16_VECTOR_ARITHMETIC)
+    #if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && defined(SIMDE_ARCH_ARM_NEON_FP16)
       float16x8_t neon;
     #endif
 
@@ -396,13 +396,13 @@ SIMDE_BEGIN_DECLS_
     #endif
   } simde_svfloat64_t;
 
-  #if defined(SIMDE_X86_AVX512BW_NATIVE)
+  #if defined(SIMDE_X86_AVX512BW_NATIVE) && (!defined(HEDLEY_MSVC_VERSION) || HEDLEY_MSVC_VERSION_CHECK(19,20,0))
     typedef struct {
       __mmask64 value;
       int       type;
     } simde_svbool_t;
 
-    #if defined(__BMI2__)
+    #if defined(SIMDE_X86_BMI2_NATIVE) && defined(SIMDE_ARCH_AMD64)
       static const uint64_t simde_arm_sve_mask_bp_lo_ = UINT64_C(0x5555555555555555);
       static const uint64_t simde_arm_sve_mask_bp_hi_ = UINT64_C(0xaaaaaaaaaaaaaaaa);
 

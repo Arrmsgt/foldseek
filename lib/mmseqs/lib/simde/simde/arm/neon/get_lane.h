@@ -23,6 +23,7 @@
  * Copyright:
  *   2020      Evan Nemerson <evan@nemerson.com>
  *   2020      Sean Maher <seanptmaher@gmail.com> (Copyright owned by Google, LLC)
+ *   2023      Yi-Yen Chung <eric681@andestech.com> (Copyright owned by Andes Technology)
  */
 
 #if !defined(SIMDE_ARM_NEON_GET_LANE_H)
@@ -33,6 +34,28 @@
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
 SIMDE_BEGIN_DECLS_
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_float16_t
+simde_vget_lane_f16(simde_float16x4_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 3) {
+  simde_float16_t r;
+
+  #if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && defined(SIMDE_ARM_NEON_FP16)
+    SIMDE_CONSTIFY_4_(vget_lane_f16, r, (HEDLEY_UNREACHABLE(), SIMDE_FLOAT16_VALUE(0.0)), lane, v);
+  #else
+    simde_float16x4_private v_ = simde_float16x4_to_private(v);
+
+    r = v_.values[lane];
+  #endif
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(defined(SIMDE_ARM_NEON_FP16)))
+  #undef vget_lane_f16
+  #define vget_lane_f16(v, lane) simde_vget_lane_f16((v), (lane))
+#endif
 
 SIMDE_FUNCTION_ATTRIBUTES
 simde_float32_t
@@ -152,7 +175,12 @@ simde_vget_lane_s64(simde_int64x1_t v, const int lane)
   #else
     simde_int64x1_private v_ = simde_int64x1_to_private(v);
 
-    r = v_.values[lane];
+    #if defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      (void) lane;
+      r = __lsx_vpickve2gr_d(simde_x_lsx_load64(&v_.values), 0);
+    #else
+      r = v_.values[lane];
+    #endif
   #endif
 
   return r;
@@ -237,7 +265,12 @@ simde_vget_lane_u64(simde_uint64x1_t v, const int lane)
   #else
     simde_uint64x1_private v_ = simde_uint64x1_to_private(v);
 
-    r = v_.values[lane];
+    #if defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      (void) lane;
+      r = __lsx_vpickve2gr_d(simde_x_lsx_load64(&v_.values), 0);
+    #else
+      r = v_.values[lane];
+    #endif
   #endif
 
   return r;
@@ -245,6 +278,28 @@ simde_vget_lane_u64(simde_uint64x1_t v, const int lane)
 #if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
   #undef vget_lane_u64
   #define vget_lane_u64(v, lane) simde_vget_lane_u64((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_float16_t
+simde_vgetq_lane_f16(simde_float16x8_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 7) {
+  simde_float16_t r;
+
+  #if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && defined(SIMDE_ARM_NEON_FP16)
+    SIMDE_CONSTIFY_8_(vgetq_lane_f16, r, (HEDLEY_UNREACHABLE(), SIMDE_FLOAT16_VALUE(0.0)), lane, v);
+  #else
+    simde_float16x8_private v_ = simde_float16x8_to_private(v);
+
+    r = v_.values[lane];
+  #endif
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(defined(SIMDE_ARM_NEON_FP16)))
+  #undef vgetq_lane_f16
+  #define vgetq_lane_f16(v, lane) simde_vgetq_lane_f16((v), (lane))
 #endif
 
 SIMDE_FUNCTION_ATTRIBUTES
@@ -339,6 +394,9 @@ simde_vgetq_lane_s16(simde_int16x8_t v, const int lane)
       int r_;
       SIMDE_CONSTIFY_8_(wasm_i16x8_extract_lane, r_, (HEDLEY_UNREACHABLE(), INT16_C(0)), lane, v_.v128);
       r = HEDLEY_STATIC_CAST(int16_t, r_);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      SIMDE_CONSTIFY_8_(__lsx_vpickve2gr_h, r, (HEDLEY_UNREACHABLE(), INT16_C(0)), lane, v_.m128i);
+      r = HEDLEY_STATIC_CAST(int16_t, r);
     #else
       r = v_.values[lane];
     #endif
@@ -393,6 +451,8 @@ simde_vgetq_lane_s64(simde_int64x2_t v, const int lane)
       int64_t r_;
       SIMDE_CONSTIFY_2_(wasm_i64x2_extract_lane, r_, (HEDLEY_UNREACHABLE(), INT64_C(0)), lane, v_.v128);
       r = HEDLEY_STATIC_CAST(int64_t, r_);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      SIMDE_CONSTIFY_2_(__lsx_vpickve2gr_d, r, (HEDLEY_UNREACHABLE(), INT64_C(0)), lane, v_.m128i);
     #else
       r = v_.values[lane];
     #endif
@@ -501,6 +561,8 @@ simde_vgetq_lane_u64(simde_uint64x2_t v, const int lane)
       int64_t r_;
       SIMDE_CONSTIFY_2_(wasm_i64x2_extract_lane, r_, (HEDLEY_UNREACHABLE(), UINT64_C(0)), lane, v_.v128);
       r = HEDLEY_STATIC_CAST(uint64_t, r_);
+    #elif defined(SIMDE_LOONGARCH_LSX_NATIVE)
+      SIMDE_CONSTIFY_2_(__lsx_vpickve2gr_d, r, (HEDLEY_UNREACHABLE(), UINT64_C(0)), lane, v_.m128i);
     #else
       r = v_.values[lane];
     #endif
@@ -511,6 +573,169 @@ simde_vgetq_lane_u64(simde_uint64x2_t v, const int lane)
 #if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES)
   #undef vgetq_lane_u64
   #define vgetq_lane_u64(v, lane) simde_vgetq_lane_u64((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly8_t
+simde_vget_lane_p8(simde_poly8x8_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 7) {
+  simde_poly8_t r;
+  simde_poly8x8_private v_ = simde_poly8x8_to_private(v);
+  r = v_.values[lane];
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && !defined(SIMDE_BUG_CLANG_71362)
+  #define simde_vget_lane_p8(v, lane) vget_lane_p8((v), (lane))
+#endif
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  defined(SIMDE_BUG_CLANG_71362))
+  #undef vget_lane_p8
+  #define vget_lane_p8(v, lane) simde_vget_lane_p8((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly16_t
+simde_vget_lane_p16(simde_poly16x4_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 3) {
+  simde_poly16_t r;
+  simde_poly16x4_private v_ = simde_poly16x4_to_private(v);
+
+  r = v_.values[lane];
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && !defined(SIMDE_BUG_CLANG_71362)
+  #define simde_vget_lane_p16(v, lane) vget_lane_p16((v), (lane))
+#endif
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  defined(SIMDE_BUG_CLANG_71362))
+  #undef vget_lane_p16
+  #define vget_lane_p16(v, lane) simde_vget_lane_p16((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly64_t
+simde_vget_lane_p64(simde_poly64x1_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 0) {
+  simde_poly64_t r;
+  simde_poly64x1_private v_ = simde_poly64x1_to_private(v);
+
+  r = v_.values[lane];
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && !defined(SIMDE_BUG_CLANG_71362)
+  #define simde_vget_lane_p64(v, lane) vget_lane_p64((v), (lane))
+#endif
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  defined(SIMDE_BUG_CLANG_71362))
+  #undef vget_lane_p64
+  #define vget_lane_p64(v, lane) simde_vget_lane_p64((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly8_t
+simde_vgetq_lane_p8(simde_poly8x16_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 15) {
+  simde_poly8_t r;
+  simde_poly8x16_private v_ = simde_poly8x16_to_private(v);
+
+  r = v_.values[lane];
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && !defined(SIMDE_BUG_CLANG_71362)
+  #define simde_vgetq_lane_p8(v, lane) vgetq_lane_p8((v), (lane))
+#endif
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  defined(SIMDE_BUG_CLANG_71362))
+  #undef vgetq_lane_p8
+  #define vgetq_lane_p8(v, lane) simde_vgetq_lane_p8((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly16_t
+simde_vgetq_lane_p16(simde_poly16x8_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 7) {
+  simde_poly16_t r;
+  simde_poly16x8_private v_ = simde_poly16x8_to_private(v);
+
+  r = v_.values[lane];
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V7_NATIVE) && !defined(SIMDE_BUG_CLANG_71362)
+  #define simde_vgetq_lane_p16(v, lane) vgetq_lane_p16((v), (lane))
+#endif
+#if defined(SIMDE_ARM_NEON_A32V7_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  defined(SIMDE_BUG_CLANG_71362))
+  #undef vgetq_lane_p16
+  #define vgetq_lane_p16(v, lane) simde_vgetq_lane_p16((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_poly64_t
+simde_vgetq_lane_p64(simde_poly64x2_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 1) {
+  simde_poly64_t r;
+  simde_poly64x2_private v_ = simde_poly64x2_to_private(v);
+
+  r = v_.values[lane];
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && !defined(SIMDE_BUG_CLANG_71362)
+  #define simde_vgetq_lane_p64(v, lane) vgetq_lane_p64((v), (lane))
+#endif
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  defined(SIMDE_BUG_CLANG_71362))
+  #undef vgetq_lane_p64
+  #define vgetq_lane_p64(v, lane) simde_vgetq_lane_p64((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_bfloat16_t
+simde_vget_lane_bf16(simde_bfloat16x4_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 3) {
+  simde_bfloat16_t r;
+
+  #if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && defined(SIMDE_ARM_NEON_BF16)
+    SIMDE_CONSTIFY_4_(vget_lane_bf16, r, (HEDLEY_UNREACHABLE(), SIMDE_BFLOAT16_VALUE(0.0)), lane, v);
+  #else
+    simde_bfloat16x4_private v_ = simde_bfloat16x4_to_private(v);
+
+    r = v_.values[lane];
+  #endif
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(defined(SIMDE_ARM_NEON_BF16)))
+  #undef vget_lane_bf16
+  #define vget_lane_bf16(v, lane) simde_vget_lane_bf16((v), (lane))
+#endif
+
+SIMDE_FUNCTION_ATTRIBUTES
+simde_bfloat16_t
+simde_vgetq_lane_bf16(simde_bfloat16x8_t v, const int lane)
+    SIMDE_REQUIRE_CONSTANT_RANGE(lane, 0, 7) {
+  simde_bfloat16_t r;
+
+  #if defined(SIMDE_ARM_NEON_A32V8_NATIVE) && defined(SIMDE_ARM_NEON_BF16)
+    SIMDE_CONSTIFY_8_(vgetq_lane_bf16, r, (HEDLEY_UNREACHABLE(), SIMDE_BFLOAT16_VALUE(0.0)), lane, v);
+  #else
+    simde_bfloat16x8_private v_ = simde_bfloat16x8_to_private(v);
+
+    r = v_.values[lane];
+  #endif
+
+  return r;
+}
+#if defined(SIMDE_ARM_NEON_A32V8_ENABLE_NATIVE_ALIASES) || (defined(SIMDE_ENABLE_NATIVE_ALIASES) && \
+  !(defined(SIMDE_ARM_NEON_BF16)))
+  #undef vgetq_lane_bf16
+  #define vgetq_lane_bf16(v, lane) simde_vgetq_lane_bf16((v), (lane))
 #endif
 
 SIMDE_END_DECLS_

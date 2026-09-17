@@ -1,3 +1,30 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Kunwar Maheep Singh <kunwar.maheep@students.iiit.ac.in>
+ *   2023-2025 Michael R. Crusoe <crusoe@debian.org>
+ */
+
 #if !defined(SIMDE_X86_AVX512_ROUNDSCALE_H)
 #define SIMDE_X86_AVX512_ROUNDSCALE_H
 
@@ -7,6 +34,7 @@
 #include "mul.h"
 #include "round.h"
 #include "cmpeq.h"
+#include "setzero.h"
 
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
@@ -18,7 +46,7 @@ SIMDE_BEGIN_DECLS_
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m128
   simde_mm_roundscale_ps_internal_ (simde__m128 result, simde__m128 a, int imm8)
-      SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+      SIMDE_REQUIRE_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
     simde__m128 r, clear_sign;
@@ -73,7 +101,7 @@ SIMDE_BEGIN_DECLS_
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(128) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm256_roundscale_ps(a, imm8) SIMDE_STATEMENT_EXPR_(({ \
     simde__m256_private \
-      simde_mm256_roundscale_ps_r_, \
+      simde_mm256_roundscale_ps_r_ = simde__m256_to_private(simde_mm256_setzero_ps()), \
       simde_mm256_roundscale_ps_a_ = simde__m256_to_private(a); \
     \
     for (size_t simde_mm256_roundscale_ps_i = 0 ; simde_mm256_roundscale_ps_i < (sizeof(simde_mm256_roundscale_ps_r_.m128) / sizeof(simde_mm256_roundscale_ps_r_.m128[0])) ; simde_mm256_roundscale_ps_i++) { \
@@ -85,7 +113,7 @@ SIMDE_BEGIN_DECLS_
 #else
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m256
-  simde_mm256_roundscale_ps_internal_ (simde__m256 result, simde__m256 a, int imm8)
+  simde_mm256_roundscale_ps_internal_ (simde__m256 result, simde__m256 a, const int imm8)
       SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
@@ -141,7 +169,7 @@ SIMDE_BEGIN_DECLS_
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(256) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm512_roundscale_ps(a, imm8) SIMDE_STATEMENT_EXPR_(({ \
     simde__m512_private \
-      simde_mm512_roundscale_ps_r_, \
+      simde_mm512_roundscale_ps_r_ = simde__m512_to_private(simde_mm512_setzero_ps()), \
       simde_mm512_roundscale_ps_a_ = simde__m512_to_private(a); \
     \
     for (size_t simde_mm512_roundscale_ps_i = 0 ; simde_mm512_roundscale_ps_i < (sizeof(simde_mm512_roundscale_ps_r_.m256) / sizeof(simde_mm512_roundscale_ps_r_.m256[0])) ; simde_mm512_roundscale_ps_i++) { \
@@ -154,7 +182,7 @@ SIMDE_BEGIN_DECLS_
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m512
   simde_mm512_roundscale_ps_internal_ (simde__m512 result, simde__m512 a, int imm8)
-      SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+      SIMDE_REQUIRE_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
     simde__m512 r, clear_sign;
@@ -210,7 +238,7 @@ SIMDE_BEGIN_DECLS_
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m128d
   simde_mm_roundscale_pd_internal_ (simde__m128d result, simde__m128d a, int imm8)
-      SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+      SIMDE_REQUIRE_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
     simde__m128d r, clear_sign;
@@ -265,7 +293,7 @@ SIMDE_BEGIN_DECLS_
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(128) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm256_roundscale_pd(a, imm8) SIMDE_STATEMENT_EXPR_(({ \
     simde__m256d_private \
-      simde_mm256_roundscale_pd_r_, \
+      simde_mm256_roundscale_pd_r_ = simde__m256d_to_private(simde_mm256_setzero_pd()), \
       simde_mm256_roundscale_pd_a_ = simde__m256d_to_private(a); \
     \
     for (size_t simde_mm256_roundscale_pd_i = 0 ; simde_mm256_roundscale_pd_i < (sizeof(simde_mm256_roundscale_pd_r_.m128d) / sizeof(simde_mm256_roundscale_pd_r_.m128d[0])) ; simde_mm256_roundscale_pd_i++) { \
@@ -278,7 +306,7 @@ SIMDE_BEGIN_DECLS_
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m256d
   simde_mm256_roundscale_pd_internal_ (simde__m256d result, simde__m256d a, int imm8)
-      SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+      SIMDE_REQUIRE_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
     simde__m256d r, clear_sign;
@@ -333,7 +361,7 @@ SIMDE_BEGIN_DECLS_
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(256) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm512_roundscale_pd(a, imm8) SIMDE_STATEMENT_EXPR_(({ \
     simde__m512d_private \
-      simde_mm512_roundscale_pd_r_, \
+      simde_mm512_roundscale_pd_r_ = simde__m512d_to_private(simde_mm512_setzero_pd()), \
       simde_mm512_roundscale_pd_a_ = simde__m512d_to_private(a); \
     \
     for (size_t simde_mm512_roundscale_pd_i = 0 ; simde_mm512_roundscale_pd_i < (sizeof(simde_mm512_roundscale_pd_r_.m256d) / sizeof(simde_mm512_roundscale_pd_r_.m256d[0])) ; simde_mm512_roundscale_pd_i++) { \
@@ -346,7 +374,7 @@ SIMDE_BEGIN_DECLS_
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m512d
   simde_mm512_roundscale_pd_internal_ (simde__m512d result, simde__m512d a, int imm8)
-      SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
+      SIMDE_REQUIRE_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
     simde__m512d r, clear_sign;
@@ -401,7 +429,7 @@ SIMDE_BEGIN_DECLS_
 #else
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m128
-  simde_mm_roundscale_ss_internal_ (simde__m128 result, simde__m128 b, int imm8)
+  simde_mm_roundscale_ss_internal_ (simde__m128 result, simde__m128 b, const int imm8)
       SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 
@@ -508,7 +536,7 @@ SIMDE_BEGIN_DECLS_
 #else
   SIMDE_FUNCTION_ATTRIBUTES
   simde__m128d
-  simde_mm_roundscale_sd_internal_ (simde__m128d result, simde__m128d b, int imm8)
+  simde_mm_roundscale_sd_internal_ (simde__m128d result, simde__m128d b, const int imm8)
       SIMDE_REQUIRE_CONSTANT_RANGE(imm8, 0, 255) {
     HEDLEY_STATIC_CAST(void, imm8);
 

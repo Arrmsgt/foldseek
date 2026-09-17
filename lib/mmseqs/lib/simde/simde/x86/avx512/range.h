@@ -1,3 +1,31 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Kunwar Maheep Singh <kunwar.maheep@students.iiit.ac.in>
+ *   2021      Evan Nemerson <evan@nemerson.com>
+ *   2023      Michael R. Crusoe <crusoe@debian.org>
+ */
+
 #if !defined(SIMDE_X86_AVX512_RANGE_H)
 #define SIMDE_X86_AVX512_RANGE_H
 
@@ -128,7 +156,7 @@ simde_mm256_range_ps (simde__m256 a, simde__m256 b, int imm8)
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(128) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm256_range_ps(a, b, imm8) SIMDE_STATEMENT_EXPR_(({ \
       simde__m256_private \
-        simde_mm256_range_ps_r_, \
+        simde_mm256_range_ps_r_ = simde__m256_to_private(simde_mm256_setzero_ps()), \
         simde_mm256_range_ps_a_ = simde__m256_to_private(a), \
         simde_mm256_range_ps_b_ = simde__m256_to_private(b); \
       \
@@ -208,7 +236,7 @@ simde_mm512_range_ps (simde__m512 a, simde__m512 b, int imm8)
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(128) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm512_range_ps(a, b, imm8) SIMDE_STATEMENT_EXPR_(({ \
       simde__m512_private \
-        simde_mm512_range_ps_r_, \
+        simde_mm512_range_ps_r_ = simde__m512_to_private(simde_mm512_setzero_ps()), \
         simde_mm512_range_ps_a_ = simde__m512_to_private(a), \
         simde_mm512_range_ps_b_ = simde__m512_to_private(b); \
       \
@@ -221,7 +249,7 @@ simde_mm512_range_ps (simde__m512 a, simde__m512 b, int imm8)
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(256) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm512_range_ps(a, b, imm8) SIMDE_STATEMENT_EXPR_(({ \
       simde__m512_private \
-        simde_mm512_range_ps_r_, \
+        simde_mm512_range_ps_r_ = simde__m512_to_private(simde_mm512_setzero_ps()), \
         simde_mm512_range_ps_a_ = simde__m512_to_private(a), \
         simde_mm512_range_ps_b_ = simde__m512_to_private(b); \
       \
@@ -368,7 +396,7 @@ simde_mm256_range_pd (simde__m256d a, simde__m256d b, int imm8)
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(128) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm256_range_pd(a, b, imm8) SIMDE_STATEMENT_EXPR_(({ \
       simde__m256d_private \
-        simde_mm256_range_pd_r_, \
+        simde_mm256_range_pd_r_ = simde__m256d_to_private(simde_mm256_setzero_pd()), \
         simde_mm256_range_pd_a_ = simde__m256d_to_private(a), \
         simde_mm256_range_pd_b_ = simde__m256d_to_private(b); \
       \
@@ -448,7 +476,7 @@ simde_mm512_range_pd (simde__m512d a, simde__m512d b, int imm8)
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(128) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm512_range_pd(a, b, imm8) SIMDE_STATEMENT_EXPR_(({ \
       simde__m512d_private \
-        simde_mm512_range_pd_r_, \
+        simde_mm512_range_pd_r_ = simde__m512d_to_private(simde_mm512_setzero_pd()), \
         simde_mm512_range_pd_a_ = simde__m512d_to_private(a), \
         simde_mm512_range_pd_b_ = simde__m512d_to_private(b); \
       \
@@ -461,7 +489,7 @@ simde_mm512_range_pd (simde__m512d a, simde__m512d b, int imm8)
 #elif SIMDE_NATURAL_VECTOR_SIZE_LE(256) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_mm512_range_pd(a, b, imm8) SIMDE_STATEMENT_EXPR_(({ \
       simde__m512d_private \
-        simde_mm512_range_pd_r_, \
+        simde_mm512_range_pd_r_ = simde__m512d_to_private(simde_mm512_setzero_pd()), \
         simde_mm512_range_pd_a_ = simde__m512d_to_private(a), \
         simde_mm512_range_pd_b_ = simde__m512d_to_private(b); \
       \
@@ -615,7 +643,7 @@ simde_mm512_range_pd (simde__m512d a, simde__m512d b, int imm8)
 #endif
 #if defined(SIMDE_X86_AVX512DQ_ENABLE_NATIVE_ALIASES)
   #undef _mm_maskz_range_ss
-  #define _mm_maskz_range_ss(k, a, b, imm8) simde_mm_mask_range_ss(k, a, b, imm8)
+  #define _mm_maskz_range_ss(k, a, b, imm8) simde_mm_maskz_range_ss(k, a, b, imm8)
 #endif
 
 #if (SIMDE_NATURAL_VECTOR_SIZE > 0) && defined(SIMDE_FAST_EXCEPTIONS)
@@ -736,7 +764,7 @@ simde_mm512_range_pd (simde__m512d a, simde__m512d b, int imm8)
 #endif
 #if defined(SIMDE_X86_AVX512DQ_ENABLE_NATIVE_ALIASES)
   #undef _mm_maskz_range_sd
-  #define _mm_maskz_range_sd(k, a, b, imm8) simde_mm_mask_range_sd(k, a, b, imm8)
+  #define _mm_maskz_range_sd(k, a, b, imm8) simde_mm_maskz_range_sd(k, a, b, imm8)
 #endif
 
 SIMDE_END_DECLS_

@@ -1,3 +1,30 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Kunwar Maheep Singh <kunwar.maheep@students.iiit.ac.in>
+ *   2023      Michael R. Crusoe <crusoe@debian.org>
+ */
+
 #if !defined(SIMDE_X86_AVX512_DPBF16_H)
 #define SIMDE_X86_AVX512_DPBF16_H
 
@@ -20,7 +47,7 @@ simde_mm_dpbf16_ps (simde__m128 src, simde__m128bh a, simde__m128bh b) {
       a_ = simde__m128bh_to_private(a),
       b_ = simde__m128bh_to_private(b);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT_SCALAR) && defined(SIMDE_CONVERT_VECTOR_) && defined(SIMDE_SHUFFLE_VECTOR_)
+    #if ! ( defined(SIMDE_ARCH_X86) && defined(HEDLEY_GCC_VERSION) ) && defined(SIMDE_VECTOR_SUBSCRIPT_SCALAR) && defined(SIMDE_CONVERT_VECTOR_) && defined(SIMDE_SHUFFLE_VECTOR_)
       uint32_t x1 SIMDE_VECTOR(32);
       uint32_t x2 SIMDE_VECTOR(32);
       simde__m128_private
@@ -109,7 +136,7 @@ simde_mm256_dpbf16_ps (simde__m256 src, simde__m256bh a, simde__m256bh b) {
       a_ = simde__m256bh_to_private(a),
       b_ = simde__m256bh_to_private(b);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT_SCALAR) && defined(SIMDE_CONVERT_VECTOR_) && defined(SIMDE_SHUFFLE_VECTOR_)
+    #if ! ( defined(SIMDE_ARCH_X86) && defined(HEDLEY_GCC_VERSION) ) && defined(SIMDE_VECTOR_SUBSCRIPT_SCALAR) && defined(SIMDE_CONVERT_VECTOR_) && defined(SIMDE_SHUFFLE_VECTOR_)
       uint32_t x1 SIMDE_VECTOR(64);
       uint32_t x2 SIMDE_VECTOR(64);
       simde__m256_private
@@ -198,7 +225,7 @@ simde_mm512_dpbf16_ps (simde__m512 src, simde__m512bh a, simde__m512bh b) {
       a_ = simde__m512bh_to_private(a),
       b_ = simde__m512bh_to_private(b);
 
-    #if defined(SIMDE_VECTOR_SUBSCRIPT_SCALAR) && defined(SIMDE_CONVERT_VECTOR_) && defined(SIMDE_SHUFFLE_VECTOR_)
+    #if ! ( defined(SIMDE_ARCH_X86) && defined(HEDLEY_GCC_VERSION) ) && defined(SIMDE_VECTOR_SUBSCRIPT_SCALAR) && defined(SIMDE_CONVERT_VECTOR_) && defined(SIMDE_SHUFFLE_VECTOR_)
       uint32_t x1 SIMDE_VECTOR(128);
       uint32_t x2 SIMDE_VECTOR(128);
       simde__m512_private
@@ -250,7 +277,12 @@ simde_mm512_dpbf16_ps (simde__m512 src, simde__m512bh a, simde__m512bh b) {
 SIMDE_FUNCTION_ATTRIBUTES
 simde__m512
 simde_mm512_mask_dpbf16_ps (simde__m512 src, simde__mmask16 k, simde__m512bh a, simde__m512bh b) {
-  #if defined(SIMDE_X86_AVX512BF16_NATIVE)
+  /* In certain releases of GCC, the insn pattern for the masked 512-bit
+   * vdpbf16ps uses the half-width (8-bit) mask mode, so the __mmask16 is loaded
+   * with kmovb and the upper 8 mask bits are silently dropped.
+   * Use the unmasked native intrinsic plus mask_mov instead for affected
+   * versions. */
+  #if defined(SIMDE_X86_AVX512BF16_NATIVE) && !defined(SIMDE_BUG_GCC_126429)
     return _mm512_mask_dpbf16_ps(src, k, a, b);
   #else
     return simde_mm512_mask_mov_ps(src, k, simde_mm512_dpbf16_ps(src, a, b));
@@ -264,7 +296,8 @@ simde_mm512_mask_dpbf16_ps (simde__m512 src, simde__mmask16 k, simde__m512bh a, 
 SIMDE_FUNCTION_ATTRIBUTES
 simde__m512
 simde_mm512_maskz_dpbf16_ps (simde__mmask16 k, simde__m512 src, simde__m512bh a, simde__m512bh b) {
-  #if defined(SIMDE_X86_AVX512BF16_NATIVE)
+  /* Same GCC kmovb/__mmask16 truncation issue as simde_mm512_mask_dpbf16_ps. */
+  #if defined(SIMDE_X86_AVX512BF16_NATIVE) && !defined(SIMDE_BUG_GCC_126429)
     return _mm512_maskz_dpbf16_ps(k, src, a, b);
   #else
     return simde_mm512_maskz_mov_ps(k, simde_mm512_dpbf16_ps(src, a, b));

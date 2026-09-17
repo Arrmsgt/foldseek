@@ -213,7 +213,7 @@ simde_int64x2_t
 simde_vpaddlq_s32(simde_int32x4_t a) {
   #if defined(SIMDE_ARM_NEON_A32V7_NATIVE)
     return vpaddlq_s32(a);
-  #elif defined(SIMDE_POWER_ALTIVEC_P7_NATIVE)
+  #elif defined(SIMDE_POWER_ALTIVEC_P8_NATIVE)
     SIMDE_POWER_ALTIVEC_VECTOR(int) one = vec_splat_s32(1);
     return
       vec_add(
@@ -286,7 +286,7 @@ simde_vpaddlq_u16(simde_uint16x8_t a) {
     simde_uint32x4_private r_;
 
     #if defined(SIMDE_X86_XOP_NATIVE)
-      r_.sse_m128i = _mm_haddd_epu16(a_.sse_m128i);
+      r_.m128i = _mm_haddd_epu16(a_.m128i);
     #elif defined(SIMDE_X86_SSE2_NATIVE)
       r_.m128i =
         _mm_add_epi32(
@@ -312,7 +312,7 @@ simde_uint64x2_t
 simde_vpaddlq_u32(simde_uint32x4_t a) {
   #if defined(SIMDE_ARM_NEON_A32V7_NATIVE)
     return vpaddlq_u32(a);
-  #elif defined(SIMDE_POWER_ALTIVEC_P7_NATIVE)
+  #elif defined(SIMDE_POWER_ALTIVEC_P8_NATIVE)
     SIMDE_POWER_ALTIVEC_VECTOR(unsigned int) one = vec_splat_u32(1);
     return
       vec_add(

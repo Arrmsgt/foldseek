@@ -1,7 +1,36 @@
+/* SPDX-License-Identifier: MIT
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ *
+ * Copyright:
+ *   2021      Kunwar Maheep Singh <kunwar.maheep@students.iiit.ac.in>
+ *   2021      Christopher Moore <moore@free.fr>
+ *   2023-2025 Michael R. Crusoe <crusoe@debian.org>
+ */
+
 #if !defined(SIMDE_X86_AVX512_ROUND_H)
 #define SIMDE_X86_AVX512_ROUND_H
 
 #include "types.h"
+#include "setzero.h"
 
 HEDLEY_DIAGNOSTIC_PUSH
 SIMDE_DISABLE_UNWANTED_DIAGNOSTICS
@@ -10,7 +39,7 @@ SIMDE_BEGIN_DECLS_
 #if SIMDE_NATURAL_VECTOR_SIZE_LE(256) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_x_mm512_round_ps(a, rounding) SIMDE_STATEMENT_EXPR_(({ \
     simde__m512_private \
-      simde_x_mm512_round_ps_r_, \
+      simde_x_mm512_round_ps_r_ = simde__m512_to_private(simde_mm512_setzero_ps()), \
       simde_x_mm512_round_ps_a_ = simde__m512_to_private(a); \
     \
     for (size_t simde_x_mm512_round_ps_i = 0 ; simde_x_mm512_round_ps_i < (sizeof(simde_x_mm512_round_ps_r_.m256) / sizeof(simde_x_mm512_round_ps_r_.m256[0])) ; simde_x_mm512_round_ps_i++) { \
@@ -148,7 +177,7 @@ SIMDE_BEGIN_DECLS_
 #if SIMDE_NATURAL_VECTOR_SIZE_LE(256) && defined(SIMDE_STATEMENT_EXPR_)
   #define simde_x_mm512_round_pd(a, rounding) SIMDE_STATEMENT_EXPR_(({ \
     simde__m512d_private \
-      simde_x_mm512_round_pd_r_, \
+      simde_x_mm512_round_pd_r_ = simde__m512d_to_private(simde_mm512_setzero_pd()), \
       simde_x_mm512_round_pd_a_ = simde__m512d_to_private(a); \
     \
     for (size_t simde_x_mm512_round_pd_i = 0 ; simde_x_mm512_round_pd_i < (sizeof(simde_x_mm512_round_pd_r_.m256d) / sizeof(simde_x_mm512_round_pd_r_.m256d[0])) ; simde_x_mm512_round_pd_i++) { \
