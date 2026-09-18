@@ -10,7 +10,7 @@
 |------|-----|
 | 架构 | loongarch64（Loongnix Server 23.1，龙芯 3A6000，128 核）|
 | 机器 | `10.71.13.47`，容器 `tuyi_test` |
-| 分支 | `master`（未切 adapt/sdaa）|
+| 分支 | `adapt/sdaa` |
 | cmake | 3.26.3 |
 | gcc / g++ | 12.3.0 |
 | Rust | 1.77.0（MMseqs2 的 foldcomp 用 Rust）|
